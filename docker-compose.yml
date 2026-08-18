@@ -1,15 +1,17 @@
 services:
   minio:
-    env_file:
-      .env
-    image: quay.io/minio/minio
+    image: minio/minio:latest
     container_name: minio
-    ports:
-      - "9000:9000"
-      - "9001:9001"
+    restart: unless-stopped
     environment:
       MINIO_ROOT_USER: ${MINIO_ROOT_USER}
       MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+    ports:
+      - "9222:9000"
+      - "9223:9001"
     volumes:
-      - ./minio/data:/data
+      - minio-volume:/data
     command: server /data --console-address ":9001"
+
+volumes:
+  minio-volume:
