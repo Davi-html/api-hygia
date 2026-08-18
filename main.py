@@ -13,28 +13,55 @@ load_dotenv()
 session = requests.Session()
 session.cookies.update({"PHPSESSID": os.getenv("PHPSESSID")})
 
-competencia = "dt_inicial=20/01/2026&dt_final=19/02/2026"
-
-url = "https://cisbaf.hygiahub.com.br/agendamento_procedimento?status=VALIDADO&{competencia}".format(competencia=competencia)
+url = "https://cisbaf.hygiahub.com.br/agendamento_procedimento"
 
 def extract(url):
-  resultado = []
-  
-  response = session.get(url)
-  response.raise_for_status()
- 
-  data = response.json()
+    resultado = []
 
-  totalPagina = math.ceil(data["total"] / 500)
+    LENGTH = 500
 
-  for pagina in range(1, totalPagina + 1):
-    data = session.get(url, params={"page": pagina, "limit": 500})
-    data = data.json()
-    resultado.extend(data["data"])
-    time.sleep(1)
+    params_base = {
+      "status": "VALIDADO",
+      "dt_inicial": "20/01/2026",
+      "dt_final": "19/02/2026",
+      "draw": 10,
+      "length": LENGTH
+    }
 
+    response = session.get(
+      url,
+      params={
+        **params_base,
+        "start": 0
+      }
+    )
 
-  return resultado
+    response.raise_for_status()
+
+    data = response.json()
+
+    total_registros = data["total"]
+
+    for start in range(0, total_registros, LENGTH):
+      response = session.get(
+        url,
+        params={
+          **params_base,
+          "start": start
+        }
+      )
+
+      response.raise_for_status()
+
+      data = response.json()
+
+      registros = data["data"]
+
+      resultado.extend(registros)
+
+      time.sleep(0.2)
+
+    return resultado
 
 
 def load():
