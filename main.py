@@ -2,7 +2,7 @@ import os
 from dotenv import load_dotenv
 import requests
 import time
-from config.minio import conectar_minio, BUCKET_NAME
+from config.minio import BUCKET_NAME
 from config.pyspark import spark
 
 load_dotenv()
@@ -63,49 +63,23 @@ def extract(url):
 
 def load(data):
   try:
-    data = extract(url)
-    
-    df = spark.DataFrame(data)
 
-    from io import BytesIO
-    parquet_buffer = BytesIO()
+    for row in data:
+      row.pop("anexos", None)
 
-    df.to_parquet(
-      parquet_buffer,
-      engine="pyarrow",
-      index=False
-    )
+    df = spark.createDataFrame(data)
 
-    parquet_buffer.seek(0)
-    parquet_size = parquet_buffer.getbuffer().nbytes
-
-    client = conectar_minio()
-
-    if not client.bucket_exists(BUCKET_NAME):
-      client.make_bucket(BUCKET_NAME)
-
-
-    client.put_object(
-      bucket_name=BUCKET_NAME,
-      object_name="teste.parquet",
-      data=parquet_buffer,
-      length=parquet_size,
-      content_type="application/octet-stream"
-    )
+    (
+      df.write
+      .mode("overwrite")
+      .parquet(f"s3a://{BUCKET_NAME}/teste.parquet")
+    ) 
 
   except Exception as e:
     print(f"Erro ao carregar os dados: {e}")
 
 def transform():
-  client = conectar_minio()
-
-  response = client.get_object(BUCKET_NAME, "teste.parquet")
-  dados = response.read()
-
-  from io import BytesIO
-  df = spark.read_parquet(BytesIO(dados))
-
-  
+  df = spark.read.parquet(f"s3a://{BUCKET_NAME}/teste.parquet")
 
   return print(df)
 

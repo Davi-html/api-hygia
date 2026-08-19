@@ -1,17 +1,60 @@
 services:
+
   minio:
     image: minio/minio:latest
     container_name: minio
     restart: unless-stopped
+
+    env_file:
+      - .env
+
     environment:
       MINIO_ROOT_USER: ${MINIO_ROOT_USER}
       MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+
     ports:
       - "9222:9000"
       - "9223:9001"
+
     volumes:
       - minio-volume:/data
+
     command: minio server /data --address 0.0.0.0:9000 --console-address 0.0.0.0:9001
+
+    networks:
+      - data
+
+
+  spark:
+    build:
+      context: ./spark
+
+    container_name: spark
+
+    restart: "no"
+
+    depends_on:
+      - minio
+
+    env_file:
+      - .env
+
+    volumes:
+      - ./:/opt/app
+
+    environment:
+      AWS_ACCESS_KEY_ID: ${MINIO_ROOT_USER}
+      AWS_SECRET_ACCESS_KEY: ${MINIO_ROOT_PASSWORD}
+      AWS_REGION: us-east-1
+
+    networks:
+      - data
+
 
 volumes:
   minio-volume:
+
+
+networks:
+  data:
+    driver: bridge
