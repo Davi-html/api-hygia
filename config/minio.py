@@ -15,4 +15,4 @@ BUCKET_NAME = "dados-marque-facil"
 
 
 def conectar_minio():
-    return client
+  return client
