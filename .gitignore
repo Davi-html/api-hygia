@@ -1,3 +1,5 @@
 .env
 venv
 minio
+__pycache__/
+*.pyc

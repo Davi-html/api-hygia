@@ -1,12 +1,9 @@
 import os
 from dotenv import load_dotenv
-import json
 import requests
-import math
 import time
-import pandas as pd
 from config.minio import conectar_minio, BUCKET_NAME
-
+from config.pyspark import spark
 
 load_dotenv()
 
@@ -64,11 +61,11 @@ def extract(url):
     return resultado
 
 
-def load():
+def load(data):
   try:
     data = extract(url)
     
-    df = pd.DataFrame(data)
+    df = spark.DataFrame(data)
 
     from io import BytesIO
     parquet_buffer = BytesIO()
@@ -99,9 +96,21 @@ def load():
   except Exception as e:
     print(f"Erro ao carregar os dados: {e}")
 
+def transform():
+  client = conectar_minio()
 
-load()
+  response = client.get_object(BUCKET_NAME, "teste.parquet")
+  dados = response.read()
 
-def transform(data):
-  return data
+  from io import BytesIO
+  df = spark.read_parquet(BytesIO(dados))
+
+  
+
+  return print(df)
+
+
+extract_data = extract(url=url)
+load(data=extract_data)
+transform()
     
