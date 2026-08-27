@@ -267,6 +267,49 @@ services:
       retries: 5
       start_period: 30s
 
+  airflow-dag-processor:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: always
+    networks:
+      - airflow-network
+
+    depends_on:
+      airflow-init:
+        condition: service_completed_successfully
+      spark-master:
+        condition: service_started
+
+    environment:
+      AIRFLOW__CORE__EXECUTOR: CeleryExecutor
+
+      AIRFLOW__CORE__AUTH_MANAGER: airflow.providers.fab.auth_manager.fab_auth_manager.FabAuthManager
+
+      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@postgres/airflow
+
+      AIRFLOW__CELERY__RESULT_BACKEND: db+postgresql://airflow:airflow@postgres/airflow
+      AIRFLOW__CELERY__BROKER_URL: redis://:@redis:6379/0
+
+      AIRFLOW__CORE__FERNET_KEY: ${FERNET_KEY:-46BKJoQYlPPOexq0OhDZnIlNepKFf87WFwLbfzqDDho=}
+
+      AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: "true"
+      AIRFLOW__CORE__LOAD_EXAMPLES: "false"
+
+      JAVA_HOME: /usr/lib/jvm/java-17-openjdk-amd64
+      SPARK_HOME: /opt/spark
+
+    volumes:
+      - ./airflow/dags:/opt/airflow/dags
+      - ./airflow/logs:/opt/airflow/logs
+      - ./airflow/config:/opt/airflow/config
+      - ./airflow/plugins:/opt/airflow/plugins
+
+      - ./spark-apps:/opt/spark-apps
+      - ./spark-apps/resources:/opt/spark-resources
+
+    command: dag-processor
+
   # ============================================================
   #                       SPARK CLUSTER
   # ============================================================
