@@ -35,6 +35,7 @@ run_spark_etl = BashOperator(
     # Usar spark-submit
     spark-submit \
         --master local[*] \
+        --packages org.apache.hadoop:hadoop-aws:3.3.4,com.amazonaws:aws-java-sdk-bundle:1.12.262 \
         --conf spark.sql.warehouse.dir=/opt/spark-warehouse \
         --conf spark.driver.memory=2g \
         --conf spark.executor.memory=2g \
