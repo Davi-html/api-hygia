@@ -20,7 +20,6 @@ dag = DAG(
     tags=['spark', 'etl'],
 )
 
-# Tarefa ETL usando spark-submit
 run_spark_etl = BashOperator(
     task_id='run_spark_etl',
     bash_command="""
@@ -39,7 +38,7 @@ run_spark_etl = BashOperator(
         --conf spark.sql.warehouse.dir=/opt/spark-warehouse \
         --conf spark.driver.memory=2g \
         --conf spark.executor.memory=2g \
-        /opt/spark-apps/etl_job.py
+        /opt/spark-apps/validados.py
     
     echo "=== ETL FINALIZADO ==="
     """,

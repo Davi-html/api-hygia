@@ -1,7 +1,9 @@
 airflow/logs*
 airflow/config*
 airflow/logs/dag_processor*
-
+minio
 
 spark-apps/output
 spark-apps/resources
+
+.env

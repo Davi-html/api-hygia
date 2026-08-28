@@ -408,6 +408,22 @@ services:
         condition: service_started
 
     restart: always
+  minio:
+    env_file:
+      - .env
+    image: minio/minio
+    environment:
+      - MINIO_ROOT_USER=${MINIO_ROOT_USER}
+      - MINIO_ROOT_PASSWORD=${MINIO_ROOT_PASSWORD}
+      - MINIO_DEFAULT_BUCKETS=bucket
+    networks:
+      - airflow-network
+    volumes:
+      - minio-volume:/data
+    ports:
+      - "9222:9000"
+      - "9223:9001"
+    command: [ "server", "--console-address", ":9001", "/data" ]
 
 
 # ============================================================
@@ -416,6 +432,7 @@ services:
 
 volumes:
   postgres-db-volume:
+  minio-volume:
 
 
 # ============================================================
