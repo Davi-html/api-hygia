@@ -64,22 +64,18 @@ def extract():
     response.raise_for_status()
     resultado = response.json()
 
-    print(f"Total reportado pela API: {resultado.get('total')}")
-    print(f"Registros na página: {len(resultado.get('data', []))}")
-
     return resultado["data"]
 
 
-def main():
-    dados = extract()
-    print(f"Registros extraídos: {len(dados)}")
-
+def load(data):
+    dados = data
+    
     if not dados:
         print("Nenhum registro retornado pela API. Encerrando sem escrever no MinIO.")
         return
-
-    # achata o campo aninhado 'anexos' e garante só as chaves que estão no schema
+    
     registros_limpos = []
+    
     for registro in dados:
         anexos = registro.pop("anexos", {}) or {}
         registro["anexo_flag"] = anexos.get("anexo", 0)
@@ -98,6 +94,10 @@ def main():
 
     spark.stop()
 
+
+def main():
+    data = extract()
+    load(data)
 
 if __name__ == "__main__":
     main()
