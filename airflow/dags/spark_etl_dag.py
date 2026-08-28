@@ -1,64 +1,47 @@
-"""
-DAG para executar o job Spark de ETL
-"""
-from datetime import datetime, timedelta
 from airflow import DAG
-from airflow.providers.standard.operators.empty import EmptyOperator
 from airflow.providers.standard.operators.bash import BashOperator
+from datetime import datetime, timedelta
 
 default_args = {
     'owner': 'airflow',
     'depends_on_past': False,
+    'start_date': datetime(2024, 8, 28),
     'email_on_failure': False,
     'email_on_retry': False,
-    'retries': 2,
-    'retry_delay': timedelta(minutes=5),
+    'retries': 1,
+    'retry_delay': timedelta(minutes=2),
 }
 
-with DAG(
-    dag_id='spark_etl_pipeline',
+dag = DAG(
+    'spark_etl_job',
     default_args=default_args,
-    description='Pipeline ETL com Spark - Dados de Vendas',
-    schedule='@daily',
-    start_date=datetime(2024, 1, 1),
+    description='ETL Job com Spark',
     catchup=False,
-    tags=['spark', 'etl', 'vendas'],
-) as dag:
+    tags=['spark', 'etl'],
+)
+
+# Tarefa ETL usando spark-submit
+run_spark_etl = BashOperator(
+    task_id='run_spark_etl',
+    bash_command="""
+    echo "=== INICIANDO ETL ==="
+    echo "Data: $(date)"
     
-    start_pipeline = EmptyOperator(
-        task_id='start_pipeline',
-    )
+    # Garantir diretórios
+    mkdir -p /opt/spark-apps/output
+    mkdir -p /opt/spark-warehouse
+    chmod -R 777 /opt/spark-apps
+    chmod -R 777 /opt/spark-warehouse
     
-    # Executa o Spark Submit diretamente via Bash
-    run_spark_etl = BashOperator(
-        task_id='run_spark_etl',
-        bash_command="""
-            spark-submit \
-                --master spark://spark-master:7077 \
-                --conf spark.sql.adaptive.enabled=true \
-                --conf spark.sql.adaptive.coalescePartitions.enabled=true \
-                --conf spark.executor.cores=2 \
-                --conf spark.executor.memory=1g \
-                --name ETL_Vendas_Job \
-                --verbose \
-                /opt/spark-apps/etl_job.py
-        """,
-    )
+    # Usar spark-submit
+    spark-submit \
+        --master local[*] \
+        --conf spark.sql.warehouse.dir=/opt/spark-warehouse \
+        --conf spark.driver.memory=2g \
+        --conf spark.executor.memory=2g \
+        /opt/spark-apps/etl_job.py
     
-    check_output = BashOperator(
-        task_id='check_output',
-        bash_command='ls -la /opt/spark-apps/output/ | head -20 || echo "Nenhum arquivo encontrado"',
-        do_xcom_push=False,
-    )
-    
-    show_summary = BashOperator(
-        task_id='show_summary',
-        bash_command='echo "ETL Job concluído em $(date)"',
-        do_xcom_push=False,
-    )
-    
-    end_pipeline = EmptyOperator(
-        task_id='end_pipeline',
-    )
-    
-    start_pipeline >> run_spark_etl >> check_output >> show_summary >> end_pipeline
+    echo "=== ETL FINALIZADO ==="
+    """,
+    dag=dag,
+)
