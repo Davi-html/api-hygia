@@ -58,8 +58,8 @@ def create_spark_session(app_name="ETL_Job_Example"):
 def extract():
     session = requests.Session()
     response = session.get(
-        'https://cisbaf.hygiahub.com.br/agendamento_procedimento?status=AGENDADO',
-        cookies={"PHPSESSID": os.getenv("PHPSESSID")}
+        'https://cisbaf.hygiahub.com.br/agendamento_procedimento?status=VALIDADO&dt_inicial=20/07/2026&dt_final=19/08/2026',
+        cookies={"PHPSESSID": "pnbue0a3i66qa8lmbk3r5nsqni"}
     )
     response.raise_for_status()
     resultado = response.json()
@@ -68,26 +68,42 @@ def extract():
 
 
 def load(data):
-    dados = data
-    
-    if not dados:
+    if not data:
         print("Nenhum registro retornado pela API. Encerrando sem escrever no MinIO.")
-        return
-    
-    registros_limpos = []
-    
-    for registro in dados:
-        anexos = registro.pop("anexos", {}) or {}
-        registro["anexo_flag"] = anexos.get("anexo", 0)
-        registro["anexo_qtd_documentos"] = len(anexos.get("documentos", []))
-        registros_limpos.append({campo.name: registro.get(campo.name) for campo in SCHEMA.fields})
+        return None
+
+    for registro in data:
+        registro.pop("anexos", None)
+
+    registros_limpos = [
+        {campo.name: registro.get(campo.name) for campo in SCHEMA.fields}
+        for registro in data
+    ]
 
     spark = create_spark_session()
     df = spark.createDataFrame(registros_limpos, schema=SCHEMA)
     df.printSchema()
 
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    output_path = f"s3a://validado/processed_data_{timestamp}"
+    timestamp = datetime.now().strftime("%Y%m%d_%H")
+    output_path = f"s3a://raw/processed_data_{timestamp}"
+    df.write.mode("overwrite").parquet(output_path)
+    print(f"Dados salvos em: {output_path}")
+
+    spark.stop()
+    return output_path
+
+
+def transform(raw_path):
+    if not raw_path:
+        print("Sem path de origem, pulando transform().")
+        return
+
+    spark = create_spark_session()
+    df = spark.read.parquet(raw_path)
+
+    timestamp = datetime.now().strftime("%Y%m%d_%H")
+    output_path = f"s3a://silver/processed_data_{timestamp}"
+
 
     df.write.mode("overwrite").parquet(output_path)
     print(f"Dados salvos em: {output_path}")
@@ -97,7 +113,9 @@ def load(data):
 
 def main():
     data = extract()
-    load(data)
+    raw_path = load(data)
+    transform(raw_path)
+
 
 if __name__ == "__main__":
     main()
