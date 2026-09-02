@@ -406,12 +406,7 @@ services:
     depends_on:
       spark-master:
         condition: service_started
-
     restart: always
-    
-    command: >
-      bash -c "pip install hadoop-aws &&
-               jupyter lab --ip=0.0.0.0 --allow-root --no-browser"
 
   minio:
     env_file:
