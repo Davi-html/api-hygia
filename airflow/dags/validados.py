@@ -26,11 +26,6 @@ run_spark_etl = BashOperator(
     echo "=== INICIANDO ETL ==="
     echo "Data: $(date)"
     
-    # Garantir diretórios
-    mkdir -p /opt/spark-apps/output
-    mkdir -p /opt/spark-warehouse
-    chmod -R 777 /opt/spark-apps
-    chmod -R 777 /opt/spark-warehouse
     
     # Usar spark-submit
     spark-submit \
@@ -49,3 +44,15 @@ run_spark_etl = BashOperator(
     execution_timeout=timedelta(seconds=3600),
     dag=dag,
 )
+
+executar_notebook = BashOperator(
+    task_id="executar_notebook",
+    bash_command="""
+        jupyter nbconvert \
+            --to notebook \
+            --execute \
+            /notebooks/opt/jupyter/agendamentos.ipynb \
+            --output /notebooks/opt/jupyter/agendamento_resultado/resultado.ipynb
+    """
+)
+run_spark_etl >> executar_notebook

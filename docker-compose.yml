@@ -40,7 +40,10 @@ x-airflow-common:
     - ./spark-apps:/opt/spark-apps
     - ./spark-apps/resources:/opt/spark-resources
     - ./spark-apps/resources/jars:/opt/spark-resources/jars
-    - ./spark-warehouse:/opt/spark-warehouse
+
+    
+    - ./notebooks:/notebooks/opt/jupyter
+
   user: "${AIRFLOW_UID:-50000}:0"
   depends_on:
     &airflow-common-depends-on
@@ -329,7 +332,6 @@ services:
     volumes:
       - ./spark-apps:/opt/spark-apps
       - ./spark-apps/resources:/opt/spark-resources
-      - ./spark-warehouse:/opt/spark-warehouse
     environment:
       - SPARK_MODE=master
       - SPARK_MASTER_HOST=spark-master
@@ -364,7 +366,6 @@ services:
     volumes:
       - ./spark-apps:/opt/spark-apps
       - ./spark-apps/resources:/opt/spark-resources
-      - ./spark-warehouse:/opt/spark-warehouse
     depends_on:
       spark-master:
         condition: service_started

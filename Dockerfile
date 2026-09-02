@@ -49,7 +49,12 @@ USER airflow
 # Instalar provider Spark e PySpark
 RUN pip install --no-cache-dir \
     apache-airflow-providers-apache-spark \
-    "pyspark==3.5.0"
+    "pyspark==3.5.0" \
+    papermill \
+    pandas \
+    requests \
+    jupyter \
+    nbconvert
 
 # Verificar instalação
 RUN spark-submit --version 2>&1 | head -3 || echo "Spark instalado"
