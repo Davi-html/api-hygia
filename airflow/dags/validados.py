@@ -21,7 +21,7 @@ dag = DAG(
 )
 
 run_spark_etl = BashOperator(
-    task_id='run_spark_etl',
+    task_id='Agendamentos',
     bash_command="""
     echo "=== INICIANDO ETL ==="
     echo "Data: $(date)"
@@ -41,7 +41,7 @@ run_spark_etl = BashOperator(
         --conf spark.sql.warehouse.dir=/opt/spark-warehouse \
         --conf spark.driver.memory=2g \
         --conf spark.executor.memory=2g \
-        /opt/spark-apps/validados.py
+        /opt/spark-apps/agendamentos/validados.py
     
     echo "=== ETL FINALIZADO ==="
     """,

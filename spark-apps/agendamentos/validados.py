@@ -7,43 +7,42 @@ from datetime import datetime
 
 from pyspark.sql import SparkSession
 from pyspark.sql.types import (
-    StructType, StructField, StringType, IntegerType
+    StructType, StructField, StringType, IntegerType, BooleanType
 )
 
 dotenv.load_dotenv()
 
 SCHEMA = StructType([
-    StructField("id", IntegerType(), True),
     StructField("agendamento_id", IntegerType(), True),
-    StructField("codigo_sus", StringType(), True),
-    StructField("procedimento", StringType(), True),
-    StructField("data_hora", StringType(), True),
-    StructField("nome", StringType(), True),
     StructField("celular", StringType(), True),
-    StructField("paciente_municipio_id", IntegerType(), True),
-    StructField("situacao", StringType(), True),
-    StructField("fornecedor", StringType(), True),
-    StructField("ubs", StringType(), True),
-    StructField("profissional", StringType(), True),
     StructField("cidade", StringType(), True),
-    StructField("data_nascimento", StringType(), True),
-    StructField("exames_laboratoriais", IntegerType(), True),
+    StructField("codigo_sus", StringType(), True),
     StructField("contraste", IntegerType(), True),
-    StructField("fila_espera_id", IntegerType(), True),
-    StructField("sedacao", IntegerType(), True),
+    StructField("data_hora", StringType(), True),
+    StructField("data_nascimento", StringType(), True),
     StructField("dt_realizado", StringType(), True),
-    StructField("solicitacao_medica", IntegerType(), True),
-    StructField("paciente_foto", IntegerType(), True),
-    StructField("anexo_flag", IntegerType(), True),
-    StructField("anexo_qtd_documentos", IntegerType(), True),
+    StructField("exames_laboratoriais", IntegerType(), True),
+    StructField("fila_espera_id", IntegerType(), True),
+    StructField("prestador", StringType(), True),
+    StructField("id", IntegerType(), True),
+    StructField("paciente", StringType(), True),
+    StructField("paciente_foto", BooleanType(), True),
+    StructField("paciente_municipio_id", IntegerType(), True),
+    StructField("procedimento", StringType(), True),
+    StructField("profissional", StringType(), True),
+    StructField("sedacao", BooleanType(), True),
+    StructField("situacao", StringType(), True),
+    StructField("solicitacao_medica", BooleanType(), True),
+    StructField("ubs", StringType(), True),
 ])
 
 
-def create_spark_session(app_name="ETL_Job_Example"):
+def create_spark_session(app_name="ETL_Job"):
     spark = (
         SparkSession.builder
         .appName(app_name)
         .config("spark.hadoop.fs.s3a.endpoint", "http://minio:9000")
+        .config("spark.sql.shuffle.partitions", "4")
         .config("spark.hadoop.fs.s3a.access.key", os.getenv("MINIO_ROOT_USER"))
         .config("spark.hadoop.fs.s3a.secret.key", os.getenv("MINIO_ROOT_PASSWORD"))
         .config("spark.hadoop.fs.s3a.path.style.access", "true")
@@ -59,7 +58,7 @@ def extract():
     session = requests.Session()
     response = session.get(
         'https://cisbaf.hygiahub.com.br/agendamento_procedimento?status=VALIDADO&dt_inicial=20/07/2026&dt_final=19/08/2026',
-        cookies={"PHPSESSID": "pnbue0a3i66qa8lmbk3r5nsqni"}
+        cookies={"PHPSESSID": os.getenv("PHPSESSID")}
     )
     response.raise_for_status()
     resultado = response.json()
