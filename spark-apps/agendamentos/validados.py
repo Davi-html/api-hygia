@@ -180,14 +180,12 @@ def silver(data_raw):
  df.write.mode("overwrite").parquet(output_path)
 
  print(f"Dados salvos em: {output_path}")
+
  return output_path
 
 def gold(data_silver):
  df = spark.read.parquet(data_silver)
  from pyspark.sql.functions import concat, lit
-
- data_inicial_dia_mes = data_inicial
- data_final_dia_mes = data_final
 
  df = df.withColumn("ano", lit(data_inicial[6:]))
  df = df.withColumn("ano2", lit(data_inicial[8:]))
@@ -219,11 +217,12 @@ def gold(data_silver):
   f"agendamentos_{data_inicial_path}_{data_final_path}"
  )
 
- spark.display(df)
 
- df.write.mode("overwrite").parquet(output_path)
-
+ df.repartition(4).write.mode("overwrite").parquet(output_path)
+ 
  print(f"Dados salvos em: {output_path}")
+
+ return output_path
     
 
 
