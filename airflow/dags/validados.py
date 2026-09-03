@@ -45,14 +45,4 @@ run_spark_etl = BashOperator(
     dag=dag,
 )
 
-executar_notebook = BashOperator(
-    task_id="executar_notebook",
-    bash_command="""
-        jupyter nbconvert \
-            --to notebook \
-            --execute \
-            /notebooks/opt/jupyter/agendamentos.ipynb \
-            --output /notebooks/opt/jupyter/agendamento_resultado/resultado.ipynb
-    """
-)
-run_spark_etl >> executar_notebook
+run_spark_etl
