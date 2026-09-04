@@ -12,16 +12,13 @@ data_final = hoje.replace(day=19)
 data_inicial = data_inicial.strftime("%d/%m/%Y")
 data_final = data_final.strftime("%d/%m/%Y")
 
-data_inicial = "20/07/2026"
-data_final = "19/08/2026"
-
 print(f"Data inicial: {data_inicial}")
 print(f"Data final:   {data_final}")
 
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import col
 from pyspark.sql.types import (
- StructType, StructField, StringType, IntegerType 
+ StructType, StructField, StringType 
 )
 
 spark = (
@@ -37,7 +34,7 @@ spark = (
 )
 
 import requests
-from datetime import datetime, date
+from datetime import datetime
 from dateutil.relativedelta import relativedelta
 from pyspark.sql.types import (
  StructType,
