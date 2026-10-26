@@ -51,7 +51,6 @@ operaFacil = BashOperator(
     echo "=== INICIANDO ETL ==="
     echo "Data: $(date)"
     
-    
     # Usar spark-submit
     spark-submit \
         --master local[*] \
