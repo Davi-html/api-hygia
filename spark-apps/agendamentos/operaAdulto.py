@@ -1,4 +1,9 @@
 import os
+from dotenv import load_dotenv
+load_dotenv()
+
+PHPSESSID = os.getenv("PHPSESSID")
+
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
 
@@ -133,7 +138,7 @@ def load(data):
  
  output_path = (
   f"s3a://agendamentos/raw/"
-  f"agendamentos_{data_inicial_path}_{data_final_path}"
+  f"agendamentos_opera_{data_inicial_path}_{data_final_path}"
  )
 
  df.write.mode("overwrite").parquet(output_path)
@@ -181,7 +186,7 @@ def silver(data_raw):
 
  output_path = (
   f"s3a://agendamentos/silver/"
-  f"agendamentos_{data_inicial_path}_{data_final_path}"
+  f"agendamentos_opera_{data_inicial_path}_{data_final_path}"
  )
 
  df.write.mode("overwrite").parquet(output_path)
@@ -212,7 +217,7 @@ def gold(data_silver):
 
  output_path = (
   f"s3a://agendamentos/gold/"
-  f"agendamentos_{data_inicial_path}_{data_final_path}"
+  f"agendamentos_opera_{data_inicial_path}_{data_final_path}"
  )
 
 

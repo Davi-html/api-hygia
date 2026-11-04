@@ -1,7 +1,11 @@
 import os
+from dotenv import load_dotenv
+load_dotenv()
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
 
+PHPSESSID = os.getenv("PHPSESSID")
+print("env", PHPSESSID)
 hoje = datetime.today()
 
 data_inicial = hoje - relativedelta(months=1)
