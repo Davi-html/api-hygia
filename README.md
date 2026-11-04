@@ -2,6 +2,14 @@
 
 Pipeline de dados que coleta os agendamentos de procedimentos do sistema **E-client** (CISBAF), processa com Spark em camadas **raw → silver → gold** e grava tudo em um **MinIO (S3)**. Os dados finais são consultados em um **Jupyter Notebook** (PySpark + Spark SQL) para alimentar os dashboards.
 
+```mermaid
+flowchart LR
+    A[Sistema E-client] --> B[Airflow<br/>DAG spark_etl_job]
+    B --> C[spark-submit]
+    C --> D[(MinIO<br/>s3a://agendamentos)]
+    D --> E[Jupyter Notebook<br/>Spark SQL]
+```
+
 ## Stack
 
 | Serviço | Tecnologia | Porta (host) |
@@ -21,7 +29,8 @@ Linguagem: Python (requests, pandas, PySpark). Os jobs Spark rodam dentro do con
 
 ```
 airflow/dags/validados.py            # DAG spark_etl_job
-spark-apps/agendamentos/validados.py # ELT
+spark-apps/agendamentos/validados.py # ETL Marque Fácil (competência atual, dia 20 a dia 19)
+spark-apps/agendamentos/operaAdulto.py # ETL Opera Fácil Adulto (emenda Opera Adulto SES)
 notebooks/agendamentos.ipynb         # consultas no MinIO via Spark SQL
 Dockerfile                           # imagem do Airflow + Java 17 + Spark 3.5.0
 docker-compose.yml
