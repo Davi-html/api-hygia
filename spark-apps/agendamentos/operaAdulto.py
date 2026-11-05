@@ -223,9 +223,21 @@ def gold(data_silver):
  return output_path
     
 
+import argparse
 
-data = get_data()
-data_raw = load(data)
-data_silver = silver(data_raw)
-data_gold = gold(data_silver)
+parser = argparse.ArgumentParser()
+parser.add_argument("--etapa", choices=["raw", "silver", "gold", "all"], default="all")
+args = parser.parse_args()
+
+def caminho(camada):
+  ini = data_inicial.replace("/", "-")
+  fim = data_final.replace("/", "-")
+  return f"s3a://agendamentos/{camada}/agendamentos_{ini}_{fim}"
+
+if args.etapa in ("raw", "all"):
+  load(get_data())
+if args.etapa in ("silver", "all"):
+  silver(caminho("raw"))
+if args.etapa in ("gold", "all"):
+  gold(caminho("silver"))
 
