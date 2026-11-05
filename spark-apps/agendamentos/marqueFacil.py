@@ -12,6 +12,9 @@ data_final = hoje.replace(day=19)
 data_inicial = data_inicial.strftime("%d/%m/%Y")
 data_final = data_final.strftime("%d/%m/%Y")
 
+data_inicial = "20/09/2026"
+data_final = "19/10/2026"
+
 print(f"Data inicial: {data_inicial}")
 print(f"Data final:   {data_final}")
 
@@ -61,7 +64,7 @@ def get_data():
     "length": length,
     "draw": 1
    },
-   cookies={"PHPSESSID": os.getenv("PHPSESSID")}
+   cookies={"PHPSESSID": "tvpasfebk3aomfvso2ltct690h"}
   )
   
   response.raise_for_status()
@@ -223,8 +226,20 @@ def gold(data_silver):
     
 
 
-data = get_data()
-data_raw = load(data)
-data_silver = silver(data_raw)
-data_gold = gold(data_silver)
+import argparse
 
+parser = argparse.ArgumentParser()
+parser.add_argument("--etapa", choices=["raw", "silver", "gold", "all"], default="all")
+args = parser.parse_args()
+
+def caminho(camada):
+  ini = data_inicial.replace("/", "-")
+  fim = data_final.replace("/", "-")
+  return f"s3a://agendamentos/{camada}/agendamentos_{ini}_{fim}"
+
+if args.etapa in ("raw", "all"):
+  load(get_data())
+if args.etapa in ("silver", "all"):
+  silver(caminho("raw"))
+if args.etapa in ("gold", "all"):
+  gold(caminho("silver"))
